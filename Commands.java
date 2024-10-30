@@ -8,6 +8,7 @@ import static java.lang.System.*;
 
 public class Commands {
 
+
     // Mohamed Alaa's Commands
     public void displayHelp() {
         System.out.println("Available commands:");
@@ -75,14 +76,14 @@ public class Commands {
         pwd();
     }
 
-//    public void cdBack() {
-//        Terminal terminal = Terminal.getInstance();
-//        File parentDirectory = terminal.getCurrentDirectory().getParentFile();
-//        if (parentDirectory != null && parentDirectory.isDirectory()) {
-//            terminal.setCurrentDirectory(parentDirectory);
-//            pwd();
-//        }
-//    }
+    public void cdBack() {
+        Terminal terminal = Terminal.getInstance();
+        File parentDirectory = terminal.getCurrentDirectory().getParentFile();
+        if (parentDirectory != null && parentDirectory.isDirectory()) {
+            terminal.setCurrentDirectory(parentDirectory);
+            pwd();
+        }
+    }
 
     public void ls() {
         Terminal terminal = Terminal.getInstance();
@@ -226,8 +227,7 @@ public class Commands {
         }
     }
 
-    public void rmdir(List<String> directories)
-    {
+    public void rmdir(List<String> directories) {
         Terminal terminal = Terminal.getInstance();
         for (String dirName : directories) {
             File rmDir;
@@ -241,18 +241,124 @@ public class Commands {
             }
 
             if (rmDir.exists() && rmDir.isDirectory()) {
-                if (rmDir.list().length==0){
-                    if (rmDir.delete()){
+                if (rmDir.list().length == 0) {
+                    if (rmDir.delete()) {
                         System.out.println("Directory deleted: " + rmDir.getAbsolutePath());
-                    }else {
+                    } else {
                         System.out.println("Failed to delete directory: " + rmDir.getAbsolutePath());
                     }
-                }else {
+                } else {
                     System.out.println("Cannot delete this directory as it is not empty: " + rmDir.getAbsolutePath());
                 }
-            }else {
+            } else {
                 System.out.println("Directory does not exist: " + rmDir.getAbsolutePath());
             }
         }
+
+    }
+
+    public void mv(List<String> args) {
+        Terminal terminal = Terminal.getInstance();
+        File source = new File(terminal.getCurrentDirectory(), args.get(0));
+        File destination = new File(terminal.getCurrentDirectory(), args.get(1));
+
+        if (!source.exists()) {
+            System.out.println("Source file does not exist: " + source.getAbsolutePath());
+        } else {
+            try {
+                Files.move(source.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            System.out.println("Moved file: " + source.getAbsolutePath() + " to " + destination.getAbsolutePath());
+        }
+    }
+
+    public void redirect(String input) {
+        PrintStream originalOut = out;
+        Parser.input = "";
+        Terminal terminal = Terminal.getInstance();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outputStream));
+        terminal.chooseCommandAction(terminal.parser.commandName);
+        setOut(originalOut);
+
+        StringBuilder fileName = new StringBuilder();
+        var args = terminal.parser.getArgs();
+        for (int i = 1; i < args.size(); i++) {
+            fileName.append(args.get(i));
+            if (i != args.size() - 1)
+                fileName.append(' ');
+        }
+
+        File file = new File(fileName.toString());
+
+        try {
+            // Check if parent directory exists or needs to be created
+            if (file.getParentFile() != null) {
+                file.getParentFile().mkdirs(); // Create parent directories if necessary
+            }
+
+            // Create the file if it doesn't exist
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+
+            // Write text into the file
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+                writer.write(outputStream.toString());
+                System.out.println("Text successfully written to " + file.getAbsolutePath());
+            }
+
+        } catch (IOException e) {
+            System.err.println("An error occurred: " + e.getMessage());
+        }
+    }
+
+    public void redirectAppend(String input) {
+        PrintStream originalOut = out;
+        Parser.input = "";
+        Terminal terminal = Terminal.getInstance();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outputStream));
+        terminal.chooseCommandAction(terminal.parser.commandName);
+        setOut(originalOut);
+
+        StringBuilder fileName = new StringBuilder();
+        var args = terminal.parser.getArgs();
+        for (int i = 1; i < args.size(); i++) {
+            fileName.append(args.get(i));
+            if (i != args.size() - 1)
+                fileName.append(' ');
+        }
+
+        File file = new File(fileName.toString());
+
+        try {
+            // Check if parent directory exists or needs to be created
+            if (file.getParentFile() != null) {
+                file.getParentFile().mkdirs(); // Create parent directories if necessary
+            }
+
+            // Create the file if it doesn't exist
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+
+            // Write text into the file
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
+                writer.append(outputStream.toString());
+                System.out.println("Text successfully appended to " + file.getAbsolutePath());
+            }
+
+        } catch (IOException e) {
+            System.err.println("An error occurred: " + e.getMessage());
+        }
+
+    }
+
+    public void pipe(String input) {
+        int index = input.indexOf('>');
+
     }
 }

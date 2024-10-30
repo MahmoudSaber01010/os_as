@@ -12,7 +12,6 @@ public class Terminal {
     private static volatile Terminal terminal;
     File currentDirectory;
     File homeDirectory;
-    List<String> history;
 
     // Singleton Terminal Constructor
     private Terminal() {
@@ -20,7 +19,6 @@ public class Terminal {
         commands = new Commands();
         currentDirectory = new File(System.getProperty("user.dir"));
         homeDirectory = new File(System.getProperty("user.home"));
-        history = new ArrayList<>();
     }
 
     public static Terminal getInstance() {
@@ -30,46 +28,40 @@ public class Terminal {
         return terminal;
     }
 
-    public void chooseCommandAction() {
-        switch (parser.getCommandName()) {
-            case "rmdir":
-                commands.rmdir(parser.getArgs());
-                break;
-            case "pwd":
-                commands.pwd();
-                break;
-            case "ls-a":
-                commands.ls_a();
-                break;
-            case "cd":
-                commands.cd(parser.getArgs());
-                break;
-            case "ls":
-                commands.ls();
-                break;
-            case "ls-r":
-                commands.ls_r();
-                break;
-            case "mkdir":
-                commands.mkdir(parser.getArgs());
-                break;
-            case "touch":
-                commands.touch(parser.getArgs());
-                break;
-            case "rm":
-                commands.rm(parser.getArgs());
-                break;
-            case "cat":
-                commands.cat(parser.getArgs());
-                break;
-            case "help":
-                commands.displayHelp();
-                break;
-            case "exit":
-                exit(0);
-                break;
+    public void chooseCommandAction(String commandName) {
+        if (Parser.input.contains(">>")) {
+            commands.redirectAppend(Parser.input);
+        } else if (Parser.input.contains(">")) {
+            commands.redirect(Parser.input);
+        } else if (Parser.input.contains("|")) {
+            commands.pipe(Parser.input);
+        } else if ("rmdir".equals(commandName)) {
+            commands.rmdir(parser.getArgs());
+        } else if ("pwd".equals(commandName)) {
+            commands.pwd();
+        } else if ("mv".equals(commandName)) {
+            commands.mv(parser.getArgs());
+        } else if ("ls-a".equals(commandName)) {
+            commands.ls_a();
+        } else if ("cd".equals(commandName)) {
+            commands.cd(parser.getArgs());
+        } else if ("ls".equals(commandName)) {
+            commands.ls();
+        } else if ("ls-r".equals(commandName)) {
+            commands.ls_r();
+        } else if ("mkdir".equals(commandName)) {
+            commands.mkdir(parser.getArgs());
+        } else if ("touch".equals(commandName)) {
+            commands.touch(parser.getArgs());
+        } else if ("rm".equals(commandName)) {
+            commands.rm(parser.getArgs());
+        } else if ("cat".equals(commandName)) {
+            commands.cat(parser.getArgs());
+        } else if ("help".equals(commandName)) {
+            commands.displayHelp();
+        } else if ("exit".equals(commandName)) {
+            exit(0);
         }
-
     }
 
 
@@ -79,8 +71,7 @@ public class Terminal {
             Scanner scanner = new Scanner(System.in);
             s = scanner.nextLine();
             parser.parse(s);
-            history.add(s);
-            chooseCommandAction();
+            chooseCommandAction(parser.commandName);
         }
     }
 
