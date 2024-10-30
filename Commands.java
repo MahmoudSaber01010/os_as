@@ -11,22 +11,22 @@ public class Commands {
     // Mohamed Alaa's Commands
     public String displayHelp() {
         return "Available commands:\n" +
-                "  exit         - Exit the CLI\n" +
-                "  help         - Display this help message\n" +
-                "  pwd          - Print working directory\n" + // works with pipe
-                "  cd <dir>     - Change directory\n" +
-                "  ls           - List files\n" + // works with pipe
-                "  ls -a        - List all files, including hidden files\n" + // works with pipe
-                "  ls -r        - List files in reversed order\n" + // works with pipe
-                "  mkdir <dir>  - Create a new directory\n" +
-                "  rmdir <dir>  - Remove an empty directory\n" +
-                "  touch <file> - Create an empty file\n" +
-                "  mv <src> <dst> - Move a file to another destination\n" +
-                "  rm <file>    - Remove a file\n" +
-                "  cat <file>   - Display file content\n" + // works with pipe
-                "  > <file>     - Redirect output to a file\n" +
-                "  >> <file>    - Append output to a file\n" +
-                "  | <cmd>      - Pipe output to another command";
+                "exit         - Exit the CLI\n" +
+                "help         - Display this help message\n" +
+                "pwd          - Print working directory\n" + // works with pipe
+                "cd <dir>     - Change directory\n" +
+                "ls           - List files\n" + // works with pipe
+                "ls -a        - List all files, including hidden files\n" + // works with pipe
+                "ls -r        - List files in reversed order\n" + // works with pipe
+                "mkdir <dir>  - Create a new directory\n" +
+                "rmdir <dir>  - Remove an empty directory\n" +
+                "touch <file> - Create an empty file\n" +
+                "mv <src> <dst> - Move a file to another destination\n" +
+                "rm <file>    - Remove a file\n" +
+                "cat <file>   - Display file content\n" + // works with pipe
+                "> <file>     - Redirect output to a file\n" +
+                ">> <file>    - Append output to a file\n" +
+                "| <cmd>      - Pipe output to another command";
     }
 
     public String pwd() {
@@ -322,7 +322,7 @@ public class Commands {
 
             // Write text into the file
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
-                writer.append(textToBeAppended);
+                writer.append(textToBeAppended).append(String.valueOf('\n'));
                 System.out.println("Text successfully appended to " + file.getAbsolutePath());
             }
 

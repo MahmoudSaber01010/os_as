@@ -67,17 +67,17 @@ public class Terminal {
 
     public void pipeAndRedirection() {
         String s = Parser.input;
-        if (s.contains("|")) {
+        if (s.contains(" | ")) {
             commands.pipe(Parser.input);
-        } else if (s.contains(">>")) {
-            String[] args = Parser.input.split(">>");
+        } else if (s.contains(" >> ")) {
+            String[] args = Parser.input.split(" >> ");
             trimStrings(args);
             if (isCommand(args[0])) {
                 commands.redirectAppend(chooseCommandAction(args[0]), args[1]);
             } else
                 commands.redirectAppend(args[0], args[1]);
-        } else if (s.contains(">")) {
-            String[] args = Parser.input.split(">");
+        } else if (s.contains(" > ")) {
+            String[] args = Parser.input.split(" > ");
             trimStrings(args);
             if (isCommand(args[0])) {
                 commands.redirect(chooseCommandAction(args[0]), args[1]);
@@ -86,7 +86,7 @@ public class Terminal {
         }
     }
 
-    private final String[] VALID_COMMANDS = {"pwd", "cd", "ls", "ls-a", "ls-r", "mkdir", "rmdir", "touch", "mv", "rm", "cat"};
+    private final String[] VALID_COMMANDS = {"pwd", "cd", "ls", "ls-a", "ls-r", "mkdir", "rmdir", "touch", "mv", "rm", "cat", "help"};
 
     public boolean isCommand(String command) {
         for (var cmd : VALID_COMMANDS) {
