@@ -14,17 +14,17 @@ public class Commands {
         System.out.println("Available commands:");
         System.out.println("  exit         - Exit the CLI");
         System.out.println("  help         - Display this help message");
-        System.out.println("  pwd          - Print working directory");
+        System.out.println("  pwd          - Print working directory"); // works with pipe
         System.out.println("  cd <dir>     - Change directory");
-        System.out.println("  ls           - List files");
-        System.out.println("  ls-a         - List all files, including hidden files");
-        System.out.println("  ls-r         - List files in reversed order");
+        System.out.println("  ls           - List files");// works with pipe
+        System.out.println("  ls-a         - List all files, including hidden files");// works with pipe
+        System.out.println("  ls-r         - List files in reversed order");// works with pipe
         System.out.println("  mkdir <dir>  - Create a new directory");
         System.out.println("  rmdir <dir>  - Remove an empty directory");
         System.out.println("  touch <file> - Create an empty file");
         System.out.println("  mv <src> <dst> - Move a file to another destination");
         System.out.println("  rm <file>    - Remove a file");
-        System.out.println("  cat <file>   - Display file content");
+        System.out.println("  cat <file>   - Display file content");// works with pipe
         System.out.println("  > <file>     - Redirect output to a file");
         System.out.println("  >> <file>    - Append output to a file");
         System.out.println("  | <cmd>      - Pipe output to another command");
