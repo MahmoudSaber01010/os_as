@@ -1,9 +1,8 @@
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 
-import static java.lang.System.exit;
+import static java.lang.System.*;
 
 public class Terminal {
     Parser parser;
@@ -12,6 +11,7 @@ public class Terminal {
     private static volatile Terminal terminal;
     File currentDirectory;
     File homeDirectory;
+    String currentCommand;
 
     // Singleton Terminal Constructor
     private Terminal() {
@@ -28,27 +28,21 @@ public class Terminal {
         return terminal;
     }
 
-    public void chooseCommandAction(String commandName) {
-        if (Parser.input.contains(">>")) {
-            commands.redirectAppend(Parser.input);
-        } else if (Parser.input.contains(">")) {
-            commands.redirect(Parser.input);
-        } else if (Parser.input.contains("|")) {
-            commands.pipe(Parser.input);
-        } else if ("rmdir".equals(commandName)) {
+    public String chooseCommandAction(String commandName) {
+        if ("rmdir".equals(commandName)) {
             commands.rmdir(parser.getArgs());
         } else if ("pwd".equals(commandName)) {
-            commands.pwd();
+            return commands.pwd();
         } else if ("mv".equals(commandName)) {
             commands.mv(parser.getArgs());
         } else if ("ls-a".equals(commandName)) {
-            commands.ls_a();
+            return commands.ls_a();
         } else if ("cd".equals(commandName)) {
             commands.cd(parser.getArgs());
         } else if ("ls".equals(commandName)) {
-            commands.ls();
+            return commands.ls();
         } else if ("ls-r".equals(commandName)) {
-            commands.ls_r();
+            return commands.ls_r();
         } else if ("mkdir".equals(commandName)) {
             commands.mkdir(parser.getArgs());
         } else if ("touch".equals(commandName)) {
@@ -56,14 +50,50 @@ public class Terminal {
         } else if ("rm".equals(commandName)) {
             commands.rm(parser.getArgs());
         } else if ("cat".equals(commandName)) {
-            commands.cat(parser.getArgs());
+            return commands.cat(parser.getArgs());
         } else if ("help".equals(commandName)) {
-            commands.displayHelp();
+            return commands.displayHelp();
         } else if ("exit".equals(commandName)) {
             exit(0);
         }
+        return "";
     }
 
+    public void trimStrings(String[] array) {
+        for (int i = 0; i < array.length; i++) {
+            array[i] = array[i].trim();
+        }
+    }
+
+    public void pipeAndRedirection() {
+        String s = Parser.input;
+        if (s.contains("|")) {
+            commands.pipe(Parser.input);
+        } else if (s.contains(">>")) {
+            String[] args = Parser.input.split(">>");
+            trimStrings(args);
+            if (isCommand(args[0])) {
+                commands.redirectAppend(chooseCommandAction(args[0]), args[1]);
+            } else
+                commands.redirectAppend(args[0], args[1]);
+        } else if (s.contains(">")) {
+            String[] args = Parser.input.split(">");
+            trimStrings(args);
+            if (isCommand(args[0])) {
+                commands.redirect(chooseCommandAction(args[0]), args[1]);
+            } else
+                commands.redirect(args[0], args[1]);
+        }
+    }
+
+    private final String[] VALID_COMMANDS = {"pwd", "cd", "ls", "ls-a", "ls-r", "mkdir", "rmdir", "touch", "mv", "rm", "cat"};
+
+    public boolean isCommand(String command) {
+        for (var cmd : VALID_COMMANDS) {
+            if (Objects.equals(command, cmd)) return true;
+        }
+        return false;
+    }
 
     public void main() {
         while (true) {
@@ -71,7 +101,8 @@ public class Terminal {
             Scanner scanner = new Scanner(System.in);
             s = scanner.nextLine();
             parser.parse(s);
-            chooseCommandAction(parser.commandName);
+            pipeAndRedirection();
+            out.println(chooseCommandAction(parser.commandName));
         }
     }
 

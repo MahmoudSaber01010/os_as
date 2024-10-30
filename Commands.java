@@ -2,7 +2,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.Scanner;
 
 import static java.lang.System.*;
 
@@ -10,43 +9,45 @@ public class Commands {
 
 
     // Mohamed Alaa's Commands
-    public void displayHelp() {
-        System.out.println("Available commands:");
-        System.out.println("  exit         - Exit the CLI");
-        System.out.println("  help         - Display this help message");
-        System.out.println("  pwd          - Print working directory"); // works with pipe
-        System.out.println("  cd <dir>     - Change directory");
-        System.out.println("  ls           - List files");// works with pipe
-        System.out.println("  ls-a         - List all files, including hidden files");// works with pipe
-        System.out.println("  ls-r         - List files in reversed order");// works with pipe
-        System.out.println("  mkdir <dir>  - Create a new directory");
-        System.out.println("  rmdir <dir>  - Remove an empty directory");
-        System.out.println("  touch <file> - Create an empty file");
-        System.out.println("  mv <src> <dst> - Move a file to another destination");
-        System.out.println("  rm <file>    - Remove a file");
-        System.out.println("  cat <file>   - Display file content");// works with pipe
-        System.out.println("  > <file>     - Redirect output to a file");
-        System.out.println("  >> <file>    - Append output to a file");
-        System.out.println("  | <cmd>      - Pipe output to another command");
+    public String displayHelp() {
+        return "Available commands:\n" +
+                "  exit         - Exit the CLI\n" +
+                "  help         - Display this help message\n" +
+                "  pwd          - Print working directory\n" + // works with pipe
+                "  cd <dir>     - Change directory\n" +
+                "  ls           - List files\n" + // works with pipe
+                "  ls -a        - List all files, including hidden files\n" + // works with pipe
+                "  ls -r        - List files in reversed order\n" + // works with pipe
+                "  mkdir <dir>  - Create a new directory\n" +
+                "  rmdir <dir>  - Remove an empty directory\n" +
+                "  touch <file> - Create an empty file\n" +
+                "  mv <src> <dst> - Move a file to another destination\n" +
+                "  rm <file>    - Remove a file\n" +
+                "  cat <file>   - Display file content\n" + // works with pipe
+                "  > <file>     - Redirect output to a file\n" +
+                "  >> <file>    - Append output to a file\n" +
+                "  | <cmd>      - Pipe output to another command";
     }
 
-    public void pwd() {
+    public String pwd() {
         Terminal terminal = Terminal.getInstance();
-        System.out.println(terminal.getCurrentDirectory().getAbsolutePath());
+        return terminal.getCurrentDirectory().getAbsolutePath();
     }
 
-    public void ls_a() {
+    public String ls_a() {
         File currentDir = new File(".");
 
         String[] files = currentDir.list();
-
+        StringBuilder s = new StringBuilder();
         if (files != null) {
             for (String file : files) {
-                System.out.println(file);
+                s.append(file);
+                s.append('\n');
             }
         } else {
             System.out.println("The directory is empty or an I/O error occurred.");
         }
+        return s.toString();
     }
 
     public void cd(List<String> args) {
@@ -73,7 +74,7 @@ public class Commands {
                 terminal.setCurrentDirectory(secondDirectory);
             }
         }
-        pwd();
+        out.println(pwd());
     }
 
     public void cdBack() {
@@ -85,14 +86,17 @@ public class Commands {
         }
     }
 
-    public void ls() {
+    public String ls() {
         Terminal terminal = Terminal.getInstance();
         String[] files = terminal.getCurrentDirectory().list();
+        StringBuilder s = new StringBuilder();
         if (files != null) {
             for (String file : files) {
-                System.out.println(file);
+                s.append(file);
+                s.append('\n');
             }
         }
+        return s.toString();
     }
 
     // remove file -should be Used in removing directory (rmdir)-
@@ -109,8 +113,9 @@ public class Commands {
         }
     }
 
-    public void cat(List<String> args) {
+    public String cat(List<String> args) {
         Terminal terminal = Terminal.getInstance();
+        StringBuilder s = new StringBuilder();
         for (String arg : args) {
             File file = new File(terminal.getCurrentDirectory(), arg);
             if (file.exists() && file.isFile()) {
@@ -118,14 +123,15 @@ public class Commands {
                     BufferedReader br = new BufferedReader(new FileReader(arg));
                     String line;
                     while ((line = br.readLine()) != null) {
-                        System.out.println(line);
+                        s.append(line);
                     }
                     br.close();
                 } catch (IOException e) {
-                    System.err.println("An error occurred while reading the file: " + e.getMessage());
+                    return "An error occurred while reading the file: " + e.getMessage();
                 }
             }
         }
+        return s.toString();
     }
 
     private void copyDirectory(File source, File destination) throws IOException {
@@ -173,16 +179,18 @@ public class Commands {
     }
 
 
-    public void ls_r() {
+    public String ls_r() {
         Terminal terminal = Terminal.getInstance();
         String[] files = terminal.getCurrentDirectory().list();
-
+        StringBuilder s = new StringBuilder();
         if (files != null) {
             // Sort the list in reverse order
             for (int i = files.length - 1; i >= 0; i--) {
-                System.out.println(files[i]);
+                s.append(files[i]);
+                s.append('\n');
             }
         }
+        return s.toString();
     }
 
     public void mkdir(List<String> directories) {
@@ -274,24 +282,8 @@ public class Commands {
         }
     }
 
-    public void redirect(String input) {
-        PrintStream originalOut = out;
-        Parser.input = "";
-        Terminal terminal = Terminal.getInstance();
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(outputStream));
-        terminal.chooseCommandAction(terminal.parser.commandName);
-        setOut(originalOut);
-
-        StringBuilder fileName = new StringBuilder();
-        var args = terminal.parser.getArgs();
-        for (int i = 1; i < args.size(); i++) {
-            fileName.append(args.get(i));
-            if (i != args.size() - 1)
-                fileName.append(' ');
-        }
-
-        File file = new File(fileName.toString());
+    public void redirect(String textToBeWritten, String fileName) {
+        File file = new File(fileName);
 
         try {
             // Check if parent directory exists or needs to be created
@@ -306,7 +298,7 @@ public class Commands {
 
             // Write text into the file
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                writer.write(outputStream.toString());
+                writer.write(textToBeWritten);
                 System.out.println("Text successfully written to " + file.getAbsolutePath());
             }
 
@@ -315,25 +307,8 @@ public class Commands {
         }
     }
 
-    public void redirectAppend(String input) {
-        PrintStream originalOut = out;
-        Parser.input = "";
-        Terminal terminal = Terminal.getInstance();
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(outputStream));
-        terminal.chooseCommandAction(terminal.parser.commandName);
-        setOut(originalOut);
-
-        StringBuilder fileName = new StringBuilder();
-        var args = terminal.parser.getArgs();
-        for (int i = 1; i < args.size(); i++) {
-            fileName.append(args.get(i));
-            if (i != args.size() - 1)
-                fileName.append(' ');
-        }
-
-        File file = new File(fileName.toString());
-
+    public void redirectAppend(String textToBeAppended, String fileName) {
+        File file = new File(fileName);
         try {
             // Check if parent directory exists or needs to be created
             if (file.getParentFile() != null) {
@@ -347,7 +322,7 @@ public class Commands {
 
             // Write text into the file
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
-                writer.append(outputStream.toString());
+                writer.append(textToBeAppended);
                 System.out.println("Text successfully appended to " + file.getAbsolutePath());
             }
 
@@ -357,8 +332,30 @@ public class Commands {
 
     }
 
-    public void pipe(String input) {
-        int index = input.indexOf('>');
+    public String pipe(String fullCommand) {
+        Terminal terminal = Terminal.getInstance();
+        String[] commands = fullCommand.split("\\|");
 
+        terminal.trimStrings(commands);
+        terminal.parser.parse(fullCommand);
+
+
+        if (terminal.isCommand(commands[0])) {
+            String out = terminal.chooseCommandAction(commands[0]);
+            out = out.replaceAll("\\\\", "\\\\\\\\"); // Replace each backslash with two backslashes
+
+            if (commands.length >= 2) {
+                commands[1] = commands[1].replaceAll("xargs", out);
+                StringBuilder s = new StringBuilder();
+                for (int i = 1; i < commands.length; i++) {
+                    s.append(commands[i]);
+                    if (i != commands.length - 1)
+                        s.append(" | ");
+                }
+                return pipe(s.toString());
+            }
+        }
+        terminal.pipeAndRedirection();
+        return null;
     }
 }
