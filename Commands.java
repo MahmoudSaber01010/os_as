@@ -1,7 +1,10 @@
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Objects;
 
 import static java.lang.System.*;
 
@@ -10,23 +13,12 @@ public class Commands {
 
     // Mohamed Alaa's Commands
     public String displayHelp() {
-        return "Available commands:\n" +
-                "exit         - Exit the CLI\n" +
-                "help         - Display this help message\n" +
-                "pwd          - Print working directory\n" + // works with pipe
-                "cd <dir>     - Change directory\n" +
-                "ls           - List files\n" + // works with pipe
+        return "Available commands:\n" + "exit         - Exit the CLI\n" + "help         - Display this help message\n" + "pwd          - Print working directory\n" + // works with pipe
+                "cd <dir>     - Change directory\n" + "ls           - List files\n" + // works with pipe
                 "ls -a        - List all files, including hidden files\n" + // works with pipe
                 "ls -r        - List files in reversed order\n" + // works with pipe
-                "mkdir <dir>  - Create a new directory\n" +
-                "rmdir <dir>  - Remove an empty directory\n" +
-                "touch <file> - Create an empty file\n" +
-                "mv <src> <dst> - Move a file to another destination\n" +
-                "rm <file>    - Remove a file\n" +
-                "cat <file>   - Display file content\n" + // works with pipe
-                "> <file>     - Redirect output to a file\n" +
-                ">> <file>    - Append output to a file\n" +
-                "| <cmd>      - Pipe output to another command";
+                "mkdir <dir>  - Create a new directory\n" + "rmdir <dir>  - Remove an empty directory\n" + "touch <file> - Create an empty file\n" + "mv <src> <dst> - Move a file to another destination\n" + "rm <file>    - Remove a file\n" + "cat <file>   - Display file content\n" + // works with pipe
+                "> <file>     - Redirect output to a file\n" + ">> <file>    - Append output to a file\n" + "| <cmd>      - Pipe output to another command";
     }
 
     public String pwd() {
@@ -105,10 +97,8 @@ public class Commands {
         for (String arg : args) {
             File file = new File(terminal.getCurrentDirectory(), arg);
             if (file.exists() && file.isFile()) {
-                if (file.delete())
-                    System.out.println("File : " + arg + " deleted successfully");
-                else
-                    System.out.println("Failed to remove this file: " + arg);
+                if (file.delete()) System.out.println("File : " + arg + " deleted successfully");
+                else System.out.println("Failed to remove this file: " + arg);
             }
         }
     }
@@ -120,10 +110,11 @@ public class Commands {
             File file = new File(terminal.getCurrentDirectory(), arg);
             if (file.exists() && file.isFile()) {
                 try {
-                    BufferedReader br = new BufferedReader(new FileReader(arg));
+                    BufferedReader br = new BufferedReader(new FileReader(file));
                     String line;
                     while ((line = br.readLine()) != null) {
                         s.append(line);
+                        s.append('\n');
                     }
                     br.close();
                 } catch (IOException e) {
@@ -181,8 +172,8 @@ public class Commands {
 
     public String ls_r() {
         Terminal terminal = Terminal.getInstance();
-        String[] files = terminal.getCurrentDirectory().list();
         StringBuilder s = new StringBuilder();
+        String[] files = terminal.getCurrentDirectory().list();
         if (files != null) {
             // Sort the list in reverse order
             for (int i = files.length - 1; i >= 0; i--) {
@@ -249,7 +240,7 @@ public class Commands {
             }
 
             if (rmDir.exists() && rmDir.isDirectory()) {
-                if (rmDir.list().length == 0) {
+                if (Objects.requireNonNull(rmDir.list()).length == 0) {
                     if (rmDir.delete()) {
                         System.out.println("Directory deleted: " + rmDir.getAbsolutePath());
                     } else {
@@ -274,7 +265,9 @@ public class Commands {
             System.out.println("Source file does not exist: " + source.getAbsolutePath());
         } else {
             try {
-                Files.move(source.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                Path s = Paths.get(source.getAbsolutePath());
+                Path d = Paths.get(destination.getAbsolutePath());
+                Files.move(s, d.resolve(s.getFileName()), StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -322,7 +315,7 @@ public class Commands {
 
             // Write text into the file
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
-                writer.append(textToBeAppended).append(String.valueOf('\n'));
+                writer.append(textToBeAppended);
                 System.out.println("Text successfully appended to " + file.getAbsolutePath());
             }
 
@@ -349,8 +342,7 @@ public class Commands {
                 StringBuilder s = new StringBuilder();
                 for (int i = 1; i < commands.length; i++) {
                     s.append(commands[i]);
-                    if (i != commands.length - 1)
-                        s.append(" | ");
+                    if (i != commands.length - 1) s.append(" | ");
                 }
                 return pipe(s.toString());
             }

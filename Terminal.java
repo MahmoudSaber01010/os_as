@@ -113,4 +113,8 @@ public class Terminal {
     public File getCurrentDirectory() {
         return currentDirectory;
     }
+
+    public File getHomeDirectory() {
+        return homeDirectory;
+    }
 }
